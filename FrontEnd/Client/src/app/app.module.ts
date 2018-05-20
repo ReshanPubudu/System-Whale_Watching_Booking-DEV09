@@ -1,6 +1,6 @@
 import { BrowserModule } from '@angular/platform-browser';
-import { NgModule } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { NgModule, ErrorHandler } from '@angular/core';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { RouterModule } from '@angular/router';
 import { AppRoutingModule } from './app.routing';
@@ -20,7 +20,9 @@ import { TermspoliciesComponent } from './termspolicies/termspolicies.component'
 import { SigninclientComponent } from './signinclient/signinclient.component';
 import { ForgetpassComponent } from './forgetpass/forgetpass.component';
 import { BoatregComponent } from './boatreg/boatreg.component';
-
+import { HttpClientModule } from '@angular/common/http';
+import { PropertyOwnerService } from './services/property-owner.service';
+import { AppErrorHandler } from './common/app-error-handler';
 
 @NgModule({
   declarations: [
@@ -43,9 +45,13 @@ import { BoatregComponent } from './boatreg/boatreg.component';
     FormsModule,
     RouterModule,
     AppRoutingModule,
-    HomeModule
+    HomeModule,
+    HttpClientModule,
+    ReactiveFormsModule
   ],
-  providers: [],
+  providers: [PropertyOwnerService,
+    {provide : ErrorHandler, useClass : AppErrorHandler}
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
