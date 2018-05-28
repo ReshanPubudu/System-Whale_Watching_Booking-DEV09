@@ -35,7 +35,8 @@
 
                     <div class="card wizard-card" data-color="orange" id="wizardProfile1" >
 
-                        <form class="new-form" [formGroup]='form' (ngSubmit)='next()'>
+                        <!-- <form class="new-form" [formGroup]='form' (ngSubmit)='next()'> -->
+                        <form class="new-form" [formGroup]='form'>
                             <!--        You can switch ' data-color="orange" '  with one of the next bright colors: "blue", "green", "orange", "red"          -->
                             <div class="wizard-header ">
                                 <h3 class="title">
@@ -46,33 +47,45 @@
 
                                 <div class="picture-container">
                                     <div class="picture" style="height: 150px;width: 150px">
-                                        <h6>Choose <br>Picture</h6>
-
-                                        <!-- default -->
+                                        <!-- old -->
+                                        <!-- <h6>Choose <br>Picture</h6> -->
                                         <!-- <img src="../assets/img/default-avatar.png" class="picture-src" id="wizardPicturePreview" title=""/> -->
                                         <!-- <input type="file" id="wizard-picture"> -->
-                                        <!-- default -->
+                                        <!-- old -->
 
                                         <!-- update -->
-
-                                            <img [src]="image_url" class="picture-src" id="wizardPicturePreview" title=""/>
-                                            <!--<input type="file" id="wizard-picture" (change)="fileuploaderOnChange($event, $event.target.result)" accept="image/*" />  &lt;!&ndash; , image/jpeg, image/jpg &ndash;&gt;-->
-                                             <input type="file" id="wizard-picture" (change)="fileuploaderOnChange($event.target.files)">
+                                            <img [src]="image_url" class="picture-src" id="wizardPicturePreview"/>
+                                            <input type="file" id="wizard-picture" (change)="fileuploaderOnChange($event)" accept="image/*" />  <!-- , image/jpeg, image/jpg -->
                                         <!-- update -->
 
                                     </div>
                                 </div>
 
-                                <!-- update  -->
+                                <!-- new -->
                                 <div class="picture-container">
                                     <div class="">
-                                        <!-- <div *ngIf="form.errors" class="alert alert-danger">Form Error-errors</div> -->
-                                        <div *ngIf="(property_owner_name.touched && property_owner_name.invalid) ||
-                                            (email.touched && email.invalid)" class="alert alert-danger">Form Error-invalid</div>
+                                        <div *ngIf="property_owner_name.touched && property_owner_name.invalid">
+                                            <div *ngIf="property_owner_name.errors.pattern" class="alert alert-danger">Name can't be one charactor, can't contain special charactors or _ or -</div>
+                                            <div *ngIf="property_owner_name.errors.cannotBeNull" class="alert alert-danger">Name can't be null</div>
+                                        </div>
+                                        <div *ngIf="email.touched && email.invalid">
+                                            <div *ngIf="email.errors.cannotBeNull" class="alert alert-danger">E-mail Can't be null</div>
+                                            <div *ngIf="!email.errors.cannotBeNull && email.errors.email" class="alert alert-danger">Invalide E-mail</div>
+                                        </div>
+                                        <div *ngIf="username.touched && username.invalid">
+                                            <div *ngIf="username.errors.pattern" class="alert alert-danger">first must be charactor, 6 <= >= 15 , others will be charactors | integer and cannot contain space or special charactors</div>
+                                            <div *ngIf="username.errors.cannotBeNull" class="alert alert-danger">Username can't be null</div>
+                                            <div *ngIf="username.errors.shouldBeUnique" class="alert alert-danger">Username has already taken</div>
+                                        </div>
+                                        <div *ngIf="password.touched && password.invalid">
+                                            <div *ngIf="password.errors.pattern" class="alert alert-danger">Password must be Minimum six characters, at least one letter, one number and one special character</div>
+                                            <div *ngIf="password.errors.cannotBeNull" class="alert alert-danger">Password can't be null</div>
+                                        </div>
+                                        <!-- <div *ngIf="password.value != conform_password.value && conform_password.value != null">Password does not match</div> -->
                                     </div>
                                 </div>
-                                <!-- update  -->
-
+                                <!-- new -->
+                                
                                 <div class="col-sm-6 ">
                                     <label class="">Owner Name <span style="color:red">*</span></label>
                                     <input
@@ -108,62 +121,68 @@
                                         type="text" class="form-control " placeholder="Poastal Code"> <!-- update -->
                                 </div>
 
-                                <div class="col-sm-6">
+                                <!-- update -->
+                                <!-- <div class="col-sm-6">
                                     <label class="">Fax</label>
-                                    <input
-                                        formControlName='fax'
-                                        type="text" class="form-control " placeholder="Fax"> <!-- update -->
-                                </div>
-
+                                    <input type="text" class="form-control " placeholder="Fax">
+                                </div> -->
+                                <!-- update -->
+                                
                                 <div class="col-sm-6">
-                                    <label class="">Email</label>
+                                    <label class="">Email<span style="color:red">*</span></label>
                                     <input
                                         formControlName='email'
                                         type="text" class="form-control " placeholder="Email"> <!-- update -->
-                                </div>
-
-                                <div class="col-sm-6">
+                                    </div>
+                                    
+                                <!-- update -->
+                                <!-- <div class="col-sm-6">
                                     <label class="">Registred Date</label>
-                                    <input
-                                        formControlName='registerd_date'
-                                        type="text" class="form-control " placeholder=" "> <!-- update -->
-                                </div>
+                                    <input type="text" class="form-control " placeholder=" ">
+                                </div> -->
+                                <!-- new -->
 
                                 <!-- new  -->
-
                                 <div class="col-sm-6">
-                                    <label class="">UserName</label>
+                                    <label class="">UserName<span style="color:red">*</span></label>
                                     <input
                                         formControlName='username'
-                                        type="text" class="form-control " placeholder="UserName"> <!-- update -->
+                                        type="text" class="form-control " placeholder="UserName"> 
                                 </div>
                                 <!-- new  -->
 
-                                <div class="col-sm-6 mr-auto ml-auto">
-                                    <label class="">Password</label>
-                                    <input
-                                        formControlName='password'
-                                        type="password" class="form-control " placeholder="Password"> <!-- update -->
-                                    <label class="col-sm-9 text-center pass ">Password must be at least 6 characters & one digit.</label>
-                                </div>
-
-                                <div class="col-sm-6">
-                                    <label class="">Confirm Password</label>
-                                    <input type="password" class="form-control " placeholder="Confirm Password"> <!-- update -->
-                                </div>
-
+                                <!-- update -->
+                                <div formGroupName='passwords'>
+                                    <div class="col-sm-6 mr-auto ml-auto">
+                                        <label class="">Password<span style="color:red">*</span></label>
+                                        <input
+                                            formControlName='password'
+                                            type="password" class="form-control " placeholder="Password">
+                                        
+                                        <!-- <label class="col-sm-9 text-center pass ">Password must be Minimum six characters, at least one letter, one number and one special character</label> -->
+                                    </div>
+                                    
+                                    <div class="col-sm-6">
+                                        <label class="">Confirm Password</label>
+                                        <input
+                                            formControlName='conform_password'
+                                            type="password" class="form-control " placeholder="Confirm Password"> <!-- update -->
+                                    </div>
+                                </div> 
+                                <!-- update -->
+                                
                                 <div class="col-sm-6 ">
                                     <div class="pull-right">
-                                        <!-- default -->
+                                        <!-- old -->
                                         <!-- <a [routerLink]="['/termspolicies']" class="btn btn-danger btn-fill btn-warning btn-wd btn-sm btn-block btn-round">Next</a> -->
-                                        <!-- default -->
-                                        <!-- updated -->
+                                        <!-- old -->
 
-                                        <!-- <button  *ngIf = "!pending" class="btn btn-danger btn-fill btn-warning btn-wd btn-sm btn-block btn-round">Next</button> -->
-                                        <!-- <button  *ngIf = "pending" class="btn btn-danger btn-fill btn-warning btn-wd btn-sm btn-block btn-round">Pending...</button> -->
-                                        <button [disabled]='form.invalid' class="btn btn-danger btn-fill btn-warning btn-wd btn-sm btn-block btn-round">Next</button>
-
-                                        <!-- updated -->
+                                        <!-- new -->
+                                        <button 
+                                            (click)="next()"
+                                            [disabled]='form.invalid || !property_owner_name.touched || !email.touched || !username.touched || !password.touched' 
+                                            class="btn btn-danger btn-fill btn-warning btn-wd btn-sm btn-block btn-round">Next</button>
+                                        <!-- new -->
 
                                     </div>
                                     <div class="clearfix"></div>

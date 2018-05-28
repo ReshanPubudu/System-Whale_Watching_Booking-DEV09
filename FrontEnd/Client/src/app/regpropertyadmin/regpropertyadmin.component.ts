@@ -1,12 +1,15 @@
 import { Component, OnInit } from '@angular/core';
-import { PropertyOwnerService } from '../services/property-owner.service';
 import { AppError } from '../common/app-error';
 import { BadInput } from '../common/bad-input';
 import { NotFoundError } from '../common/not-found-error';
-import { FormGroup, Validators, FormBuilder } from '@angular/forms';
-import { Observable } from 'rxjs/Observable';
+import { FormGroup, Validators, FormBuilder, AbstractControl } from '@angular/forms';
 import { UsernameValidators } from '../common/validators/username.validators';
 import { CommonValidators } from '../common/validators/common.validators';
+import { DatePipe } from '@angular/common';
+import { HttpParams } from '@angular/common/http';
+import { PropertyOwnerService } from '../services/custom/property.owner.service';
+import { SharedDataService } from '../services/data-service/shared-data.service';
+import { RouterLink, Router, NavigationExtras } from '@angular/router';
 
 @Component({
   selector: 'app-regpropertyadmin',
@@ -15,71 +18,30 @@ import { CommonValidators } from '../common/validators/common.validators';
 })
 export class RegpropertyadminComponent implements OnInit {
 
-  test : Date = new Date();
   form : FormGroup = null;
   fileToUpload: File = null;
-  image_url : string = './assets/img/default-avatar.png';
-  // image_url : string = '../Pictures/images.png';
-  pending = false;
+  image_url = '../../assets/img/favicon.ico';
+  // image_url = require('./src/assets/img/default-avatar.png');
 
-  constructor(private formBuilder : FormBuilder, private service : PropertyOwnerService) {
+  constructor(private formBuilder : FormBuilder, private datepipe : DatePipe, private service : PropertyOwnerService, private usernamevalidators : UsernameValidators, private shareddataservice : SharedDataService, private router:Router) {
+
     this.form =  formBuilder.group({
-      property_owner_name : ['', Validators.pattern('([A-Za-z]+[.]?[\\s]*?)+[A-Za-z][\\\']?([A-Za-z]*?[\\s]*?)*?')],
+      property_owner_name : ['', Validators.pattern('([A-Za-z]+[.]?[\\s]*?)+[A-Za-z][\\\']?([A-Za-z]*?[\\s]*?)*?'), CommonValidators.cannotBeNull],
       address_postal_code : [],
       address_street_and_num : [],
-      address_city : [],
-      address_country : [],
-      fax : [],
-      email : ['', Validators.email],
-      registerd_date : [''],
-      username : ['', Validators.pattern('[A-z][A-z0-9_]{5,15}')],
-      password : ['', Validators.pattern('([A-Za-z]{1,1}[A-Za-z0-9_]*?){6,15}')]
+      address_city : ['', Validators.pattern('[A-Za-z]*([\\s]*?[A-Za-z0-9]*?[\\s]*?)*?')],
+      address_country : [''],
+      email : ['', Validators.email, CommonValidators.cannotBeNull],
+      username : ['', Validators.pattern('[A-Za-z][A-Za-z0-9_]{5,14}'), usernamevalidators.shouldBeUnique.bind(usernamevalidators), CommonValidators.cannotBeNull], //  first must be charactor, 6 <= username >= 15 , other will be charactors | integer and cannot contain space or special charactors
+      passwords: this.formBuilder.group({
+        password: ['', Validators.pattern('(?=.*[A-Za-z])(?=.*\\d)(?=.*[$@$!%*#?&])[A-Za-z\\d$@$!%*#?&]{6,14}'), CommonValidators.cannotBeNull],
+        conform_password: []
+      // }, { validators : CommonValidators.passwordConfirming })
+      })
     });
   }
-
-  next(){
-    this.register_property_owner();
-    // this.form.setErrors({
-    //   invalidLogin : true
-    // });
-  }
-
+  
   ngOnInit() {}
-
-  fileuploaderOnChange(event, url) {
-    this.fileToUpload = event.target.files[0];
-
-    // let reader = new FileReader();
-    // reader.readAsDataURL(this.fileToUpload);
-    // reader.onload = (event) => {
-      //this.image_url = event.target.result;
-	  // this.image_url = this.sanitization.bypassSecurityTrustStyle(event.target.result);
-    // }
-  }
-
-  register_property_owner () {
-    let formdata = new FormData();
-    for (let row in this.form.getRawValue()){
-      let x : string = this.form.get(row).value;
-      formdata.append(row, x);
-    }
-    formdata.append('profile_picture', this.fileToUpload, this.fileToUpload !== null ? this.fileToUpload.name : null);
-
-    // this.pending = true;
-    // console.log('pending...' + this.pending);
-    this.service.insert('insert_Property_Owner', formdata )
-    .subscribe(
-      responce => {
-        console.log(responce);
-      },
-      (error : AppError) => {
-        if(error instanceof BadInput){
-          alert ('This post input data has error..');
-        } else throw error;
-      });
-    // this.pending = false;
-    // console.log('pended...' + this.pending);
-  }
 
   get property_owner_name(){
     return this.form.get('property_owner_name');
@@ -89,95 +51,133 @@ export class RegpropertyadminComponent implements OnInit {
     return this.form.get('email');
   }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  getAll (){
-    this.service.getAll('get_Property_Owner')
-      .subscribe(responce => {
-        console.log(responce);
-      });
+  get username(){
+    return this.form.get('username');
   }
 
-  search () {
-    let property_owner_id =26;
+  get password(){
+    return this.form.get('passwords.password');
+  }
 
-    // let headers = new Headers({});
-    // let myHeaders = new Headers();
-    // myHeaders.append('Content-Type', 'application/json');
-    // let myParams = new HttpParams();
-    // myParams.append(' search_Property_Owner_id ', property_owner_id);
-    // let options : RequestOptions = new RequestOptions({ headers: myHeaders, params: myParams });
+  get conform_password(){
+    return this.form.get('passwords.conform_password');
+  }
 
-    // this.service.search('search_Property_Owner' , { params: new HttpParams({ search_Property_Owner_id : property_owner_id }) } )
-    // this.service.search('search_Property_Owner' , { params: {'search_Property_Owner_id': id} } )
-    this.service.search('search_Property_Owner?property_owner_id=' + property_owner_id )
+  fileuploaderOnChange(event) {
+
+    this.fileToUpload = event.target.files[0];
+    
+    //// display image
+    let reader = new FileReader();
+    reader.readAsDataURL(this.fileToUpload);
+    reader.onload = (event : Event) => {
+      this.image_url = reader.result;
+    }
+
+  }
+
+  next(){
+
+    let date = new Date();
+    let formdata = new FormData();
+    
+    for (let row in this.form.getRawValue()){
+      let val : string = this.form.get(row).value;
+      if((row as string) === 'username')
+        formdata.append(row, val.trim().toLowerCase());
+      else if ((row as string) === 'passwords') {
+        formdata.append('password', this.form.get(row + '.password').value);
+      } else 
+        formdata.append(row, val !== null ? val.trim() : null);
+    }
+    formdata.append('profile_picture', this.fileToUpload, this.fileToUpload !== null ? this.fileToUpload.name : null);
+    formdata.append('registerd_date', this.datepipe.transform(date, 'yyyy-MM-d HH:mm:ss a'));
+
+    this.shareddataservice.setSharedData(formdata);
+    // this.router.navigate(['/termspolicies']);
+    let navigationExtras: NavigationExtras = {
+      queryParams: {
+          'username': formdata.get('username')
+      }};
+      this.router.navigate(['/termspolicies'], navigationExtras)
+
+////////////////////////////////////////////////////////////////////////////////////////////
+    this.register_property_owner(formdata);
+  }
+
+  register_property_owner (formdata) {
+  
+    // termspolicies.component.ts
+
+    this.service.insert_Property_Owner( formdata )
       .subscribe(
         responce => {
           console.log(responce);
-        });
-  }
-
-  update (){
-    let values : Property_Owner = {property_owner_id : 0, property_owner_name : 'property_owner_name04', address_postal_code : 'address_postal_code04', address_street_and_num : 'address_street_and_num04', address_city : 'address_city04', address_country : 'address_country04', fax : 'fax04', email : 'email04', registerd_date : '2017.1.04', profile_picture : 'profile_picture04', username : 'username04', password : 'password04'};
-
-    // this.service.update('update_Property_Owner', values)
-    //   .subscribe(
-    //     responce => {
-    //       console.log(responce);
-    //     });
-
-    console.log (this.service.update('update_Property_Owner', values));
-
-  }
-
-  delete () {
-    let property_owner_id = 23;
-
-    this.service.delete('delete_Property_Owner?property_owner_id=' + property_owner_id)
-      .subscribe(
+        },
         (error : AppError) => {
-          if(error instanceof NotFoundError)
-            alert ('This post has already deleted..');
-          else throw error;
+          if(error instanceof BadInput){
+            alert ('This post input data has error..');
+          } else throw error;
         });
+  
   }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  // getAll (){
+  //   this.service.get_Property_Owners()
+  //     .subscribe(responce => {
+  //       console.log(responce);
+  //     });
+  // }
+
+  // search () {
+  //   this.service.search_Property_Owner(new HttpParams().append('property_owner_id', '45'))
+  //     .subscribe(
+  //       responce => {
+  //         console.log(responce);
+  //       });
+  // }
+
+  // update (){
+  //   let formdata = new FormData();
+
+  //   this.service.update_Property_Owner(formdata)
+  //     .subscribe(
+  //       responce => {
+  //         console.log(responce);
+  //       });
+  // }
+
+  // delete () {
+  //   this.service.delete_Property_Owner(new HttpParams().append('property_owner_id', '48'))
+  //     .subscribe(
+  //       () => {
+  //         console.log(1);
+  //       },
+  //       (error : AppError) => {
+  //         if(error instanceof NotFoundError)
+  //           alert ('This post has already deleted..');
+  //         else throw error;
+  //       });
+  // }
+
 }
 
-
-
-export interface Property_Owner {
-
-  property_owner_id : number;
-  property_owner_name : string;
-  address_postal_code : string;
-  address_street_and_num : string;
-  address_city : string;
-  address_country : string;
-  fax : string;
-  email : string;
-  registerd_date : string;
-  profile_picture : string;
-  username : string;
-  password : string;
-
-}

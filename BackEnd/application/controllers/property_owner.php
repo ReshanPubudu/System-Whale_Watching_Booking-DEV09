@@ -30,13 +30,13 @@ class Property_Owner extends CI_Controller {
 	}
     
     public function search_Property_Owner() {
-        // echo json_encode($this->Super_Repository->search(['property_owner_id' => 10, 'ownerName' => 'ownerName4']));
         echo json_encode($this->property_owner_model->search($_GET));
     }
 
     public function update_Property_Owner() {
-        // echo $this->property_owner_model->update(['property_owner_id' => 0, 'property_owner_name' => 'property_owner_name14', 'address_postal_code' => 'address_postal_code14', 'address_street_and_num' => 'address_street_and_num14', 'address_city' => 'address_city14', 'address_country' => 'address_country14', 'fax' => 'fax14', 'email' => 'email14', 'registerd_date' => '2017.1.14', 'profile_picture' => 'profile_picture14', 'username' => 'username14', 'password' => 'password14'], ['property_owner_id' => 14]) > 0? true : false;
-        echo $this->property_owner_model->update($_POST, ['property_owner_id' => $_POST['property_owner_id']]) > 0? true : false;        
+        print_r($_POST);
+        // echo $this->property_owner_model->update($_POST, ['property_owner_id' => $_POST['property_owner_id']]) > 0? true : false;        
+        // echo $this->property_owner_model->update(['property_owner_name' => 'Malmi2', 'username' => 'Pani2', 'property_owner_id' => '45'], ['property_owner_id' => '45']) > 0? true : false;        
     }
     
     public function delete_Property_Owner() {
@@ -44,6 +44,25 @@ class Property_Owner extends CI_Controller {
         // echo $this->property_owner_model->delete(['property_owner_id' => 10]) > 0? true : false;
         echo $this->property_owner_model->delete($_GET);
         // print_r($_GET);
+    }
+
+    public function check_Property_Owner_Username_Unique() {
+        echo $this->property_owner_model->find_count($_GET)[0]['count(*)'] > 0 ? false : true;
+        die();
+    }
+
+    public function check_Property_Owner_Email_IfExists(){
+        // echo $this->property_owner_model->find_count($_GET)[0]['count(*)'] > 0 ? false : true;
+        echo $this->property_owner_model->search($_GET) != null ? true : false;        
+        die();
+    }
+
+    public function check_Property_Owner_username_email(){
+        // echo "test pass";
+        // print_r($_GET);
+        echo $this->property_owner_model->search($_GET) != null ? true : false;
+        // echo $this->property_owner_model->search($_GET) ;
+        die();
     }
 
 }

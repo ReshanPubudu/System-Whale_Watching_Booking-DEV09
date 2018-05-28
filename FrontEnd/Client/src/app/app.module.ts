@@ -21,8 +21,13 @@ import { SigninclientComponent } from './signinclient/signinclient.component';
 import { ForgetpassComponent } from './forgetpass/forgetpass.component';
 import { BoatregComponent } from './boatreg/boatreg.component';
 import { HttpClientModule } from '@angular/common/http';
-import { PropertyOwnerService } from './services/property-owner.service';
 import { AppErrorHandler } from './common/app-error-handler';
+import { DatePipe, CommonModule } from '@angular/common';
+import { PropertyOwnerService } from './services/custom/property.owner.service';
+import { UsernameValidators } from './common/validators/username.validators';
+import { SharedDataService } from './services/data-service/shared-data.service';
+import { ClientService } from './services/custom/client.service';
+import { CommonValidators } from './common/validators/common.validators';
 
 @NgModule({
   declarations: [
@@ -49,7 +54,13 @@ import { AppErrorHandler } from './common/app-error-handler';
     HttpClientModule,
     ReactiveFormsModule
   ],
-  providers: [PropertyOwnerService,
+  providers: [
+    PropertyOwnerService,
+    ClientService,
+    DatePipe,
+    UsernameValidators,
+    CommonValidators,
+    SharedDataService,
     {provide : ErrorHandler, useClass : AppErrorHandler}
   ],
   bootstrap: [AppComponent]
